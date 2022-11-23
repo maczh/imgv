@@ -2,9 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"github.com/fishtailstudio/imgo"
 	"github.com/gin-gonic/gin"
 	"github.com/sadlil/gologger"
+	"image"
 	"imgv/service"
 	"imgv/utils"
 	"net/url"
@@ -12,7 +12,7 @@ import (
 
 var logger = gologger.GetLogger()
 
-func ImageProcess(c *gin.Context) (string, *imgo.Image, error) {
+func ImageProcess(c *gin.Context) (string, image.Image, error) {
 	oriUrl := c.Query("url")
 	if oriUrl == "" {
 		logger.Error("params missing url")
@@ -26,18 +26,22 @@ func ImageProcess(c *gin.Context) (string, *imgo.Image, error) {
 	}
 	logger.Debug("u = " + utils.ToJSON(u))
 	imgProcessParams := c.Query("x-oss-process")
+	values := u.Query()
 	if imgProcessParams == "" {
-		logger.Error("params missing x-oss-process")
-		return "", nil, fmt.Errorf("params missing x-oss-process")
+		imgProcessParams = values.Get("x-oss-process")
+		if imgProcessParams == "" {
+			logger.Error("params missing x-oss-process")
+			return "", nil, fmt.Errorf("params missing x-oss-process")
+		}
 	}
 	action, actionParams, err := service.SplitImageProcessParameters(imgProcessParams)
 	if err != nil {
 		return "", nil, err
 	}
-	values := u.Query()
-	for k,v := range c.Request.URL.Query(){
+	values.Del("x-oss-process")
+	for k, v := range c.Request.URL.Query() {
 		if k != "url" && k != "x-oss-process" {
-			logger.Debug(fmt.Sprintf("添加query参数: %s: %s",k, v[0]))
+			logger.Debug(fmt.Sprintf("添加query参数: %s: %s", k, v[0]))
 			values.Add(k, v[0])
 		}
 	}
@@ -46,7 +50,7 @@ func ImageProcess(c *gin.Context) (string, *imgo.Image, error) {
 	logger.Debug("图片源地址: " + imgUrl)
 	switch action {
 	case "resize":
-		return service.Resize(imgUrl,actionParams)
+		return service.Resize(imgUrl, actionParams)
 	case "corp":
 
 	case "rotate":

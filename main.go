@@ -62,14 +62,14 @@ func setupRouter() *gin.Engine {
 			w.Header().Set("Content-Type", contentType)
 			switch contentType {
 			case "image/png":
-				err = png.Encode(w, img.ToImage())
+				err = png.Encode(w, img)
 			case "image/jpeg":
-				err = jpeg.Encode(w, img.ToImage(), &jpeg.Options{Quality: 75})
+				err = jpeg.Encode(w, img, &jpeg.Options{Quality: 75})
 			case "image/gif":
-				err = gif.Encode(w, img.ToImage(), nil)
+				err = gif.Encode(w, img, nil)
 			default:
 				w.Header().Set("Content-Type", "image/png")
-				err = png.Encode(w, img.ToImage())
+				err = png.Encode(w, img)
 			}
 			w.Flush()
 		}
