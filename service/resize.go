@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fishtailstudio/imgo"
 	"github.com/sadlil/gologger"
-	"image"
 	"imgv/utils"
 	"math"
 	"strconv"
@@ -38,10 +37,8 @@ func mfit(srcW, srcH, dstW, dstH int) (int, int) {
 	}
 }
 
-func Resize(imgUrl string, params map[string]string) (string, image.Image, error) {
-	logger.Debug("Resize image url: " + imgUrl)
-	logger.Debug("params: " + utils.ToJSON(params))
-	img := imgo.LoadFromUrl(imgUrl)
+func Resize(img *imgo.Image, params map[string]string) (string, *imgo.Image, error) {
+	logger.Debug("resize params: " + utils.ToJSON(params))
 	width := img.Width()
 	height := img.Height()
 	contentType := img.Mimetype()
@@ -69,13 +66,23 @@ func Resize(imgUrl string, params map[string]string) (string, image.Image, error
 	case "fill":
 		wr, hr := mfit(width, height, w, h)
 		logger.Debug(fmt.Sprintf("fill-mfit: width=%d, height=%d, w=%d, h=%d", width, height, wr, hr))
-		logger.Debug(fmt.Sprintf("corp: x=%d y=%d", (wr-w)/2, (hr-h)/2))
-		img = img.Resize(wr, hr)
-		img = img.Crop((wr-w)/2, (hr-h)/2, w, h)
+		img = img.Resize(wr+1, hr+1)
+		//logger.Debug(fmt.Sprintf("corp-before: x=%d y=%d,ww=%d, hh=%d, w=%d, h=%d", (wr-w)/2, (hr-h)/2,img.Width(), img.Height(), w, h))
+		img = img.Crop((wr-w+1)/2, (hr-h+1)/2, w, h)
+		//logger.Debug(fmt.Sprintf("corp-after: w=%d, h=%d", img.Width(), img.Height()))
 	case "pad":
 
 	case "fixed":
 		img = img.Resize(w, h)
 	}
-	return contentType, img.ToImage(), nil
+	return contentType, img, nil
+}
+
+func ResizeUrl(imgUrl string, params map[string]string) (string, *imgo.Image, error) {
+	logger.Debug("Resize image url: " + imgUrl)
+	img := LoadImage(imgUrl)
+	if img.Error != nil {
+		return "", img, img.Error
+	}
+	return Resize(img, params)
 }

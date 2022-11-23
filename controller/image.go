@@ -34,7 +34,7 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 			return "", nil, fmt.Errorf("params missing x-oss-process")
 		}
 	}
-	action, actionParams, err := service.SplitImageProcessParameters(imgProcessParams)
+	actions, actionParams, err := service.SplitImageProcessParameters(imgProcessParams)
 	if err != nil {
 		return "", nil, err
 	}
@@ -48,27 +48,35 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 	u.RawQuery = values.Encode()
 	imgUrl := u.String()
 	logger.Debug("图片源地址: " + imgUrl)
-	switch action {
-	case "resize":
-		return service.Resize(imgUrl, actionParams)
-	case "corp":
+	var contentType string
+	img := service.LoadImage(imgUrl)
+	for i, action := range actions {
+		switch action {
+		case "resize":
+			contentType, img, err = service.Resize(img, actionParams[i])
+		case "corp":
+			contentType, img, err = service.Corp(img, actionParams[i])
+		case "rotate":
+			contentType, img, err = service.Rotate(img, actionParams[i])
+		case "format":
 
-	case "rotate":
+		case "rounded-corners":
 
-	case "format":
+		case "blur":
 
-	case "rounded-corners":
+		case "sharpen":
 
-	case "blur":
+		case "bright":
 
-	case "sharpen":
+		case "contrast":
 
-	case "bright":
+		case "info":
 
-	case "contrast":
-
-	case "info":
+		}
 
 	}
-	return "", nil, nil
+	if err != nil {
+		return "", nil, err
+	}
+	return contentType, img.ToImage(), nil
 }
