@@ -24,7 +24,7 @@ func borderRadius(img *imgo.Image, r int) *imgo.Image {
 	}
 	w, h := img.Width(), img.Height()
 	c := radius{p: image.Point{X: w, Y: h}, r: r}
-	dst := image.NewRGBA(image.Rect(0, 0, w, h))
+	dst := image.NewRGBA(img.Bounds())
 	logger.Debug("bounds: " + utils.ToJSON(dst.Bounds()))
 	logger.Debug("radius: " + utils.ToJSON(c.p))
 	draw.DrawMask(dst, dst.Bounds(), img.ToImage(), image.Point{}, &c, image.Point{}, draw.Over)

@@ -64,6 +64,8 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 			contentType, img, err = service.Rotate(img, actionParams[i])
 		case "format":
 
+		case "watermark":
+
 		case "rounded-corners":
 			contentType, img, err = service.RoundedCorners(img, actionParams[i])
 		case "circle":

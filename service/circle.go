@@ -23,10 +23,11 @@ func borderCircle(img *imgo.Image, r int) *imgo.Image {
 	}
 	w, h := img.Width(), img.Height()
 	c := circle{p: image.Point{X: w / 2, Y: h / 2}, r: r}
-	dst := image.NewRGBA(image.Rect(0, 0, r*2, r*2))
-	draw.DrawMask(dst, dst.Bounds(), img.ToImage(), image.Point{}, &c, image.Point{}, draw.Over)
+	dst := image.NewRGBA(img.Bounds())
+	draw.DrawMask(dst, img.Bounds(), img.ToImage(), image.Point{}, &c, image.Point{}, draw.Over)
 	img = imgo.LoadFromImage(dst)
-	return img
+	x, y := w/2-r, h/2-r
+	return img.Crop(x, y, r*2, r*2)
 }
 
 type circle struct { // 这里需要自己实现一个圆形遮罩，实现接口里的三个方法
@@ -42,11 +43,12 @@ func (c *circle) Bounds() image.Rectangle {
 	return image.Rect(c.p.X-c.r, c.p.Y-c.r, c.p.X+c.r, c.p.Y+c.r)
 }
 
-// 对每个像素点进行色值设置，在半径以内的图案设成完全不透明
 func (c *circle) At(x, y int) color.Color {
 	xx, yy, rr := float64(x-c.p.X)+0.5, float64(y-c.p.Y)+0.5, float64(c.r)
 	if xx*xx+yy*yy < rr*rr {
-		return color.Alpha{A: 255}
+		//noinspection GoStructInitializationWithoutFieldNames
+		return color.Alpha{255}
 	}
-	return color.Alpha{}
+	//noinspection GoStructInitializationWithoutFieldNames
+	return color.Alpha{0}
 }
