@@ -34,6 +34,10 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 			return "", nil, fmt.Errorf("params missing x-oss-process")
 		}
 	}
+	cacheImage, err := service.LoadFromCache(u.Host+u.Path, imgProcessParams)
+	if err == nil && cacheImage != nil {
+		return cacheImage.Mimetype(), cacheImage.ToImage(), nil
+	}
 	actions, actionParams, err := service.SplitImageProcessParameters(imgProcessParams)
 	if err != nil {
 		return "", nil, err
@@ -80,5 +84,6 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 	if err != nil {
 		return "", nil, err
 	}
+	service.SaveCache(img, u.Host+u.Path, imgProcessParams)
 	return contentType, img.ToImage(), nil
 }

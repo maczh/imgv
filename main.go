@@ -10,9 +10,12 @@ import (
 	"image/jpeg"
 	"image/png"
 	"imgv/controller"
+	"imgv/service"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -20,11 +23,17 @@ import (
 var logger = gologger.GetLogger()
 
 //初始化命令行参数
-func parseArgs() int {
+func parseArgs() (int, string) {
 	port := 8080
+	path, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	cacheDir := ""
 	flag.IntVar(&port, "p", 8080, "侦听端口号")
+	flag.StringVar(&cacheDir, "d", path+"/cache", "图片缓存目录")
 	flag.Parse()
-	return port
+	if strings.HasSuffix(cacheDir, "/") {
+		cacheDir = strings.TrimSuffix(cacheDir, "/")
+	}
+	return port, cacheDir
 }
 
 func cors() gin.HandlerFunc {
@@ -83,7 +92,11 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	port := parseArgs()
+	port, cacheDir := parseArgs()
+	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
+		os.Mkdir(cacheDir, 0666)
+	}
+	service.CacheDir = cacheDir
 	engine := setupRouter()
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
