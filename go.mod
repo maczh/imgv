@@ -3,6 +3,7 @@ module imgv
 go 1.17
 
 require (
+	github.com/disintegration/imaging v1.6.2
 	github.com/fishtailstudio/imgo v0.0.3
 	github.com/gin-gonic/gin v1.8.1
 	github.com/json-iterator/go v1.1.12

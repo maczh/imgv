@@ -71,11 +71,11 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 		case "blur":
 			contentType, img, err = service.Blur(img, actionParams[i])
 		case "sharpen":
-
+			contentType, img, err = service.Sharpen(img, actionParams[i])
 		case "bright":
-
+			contentType, img, err = service.Bright(img, actionParams[i])
 		case "contrast":
-
+			contentType, img, err = service.Contrast(img, actionParams[i])
 		case "info":
 
 		}
