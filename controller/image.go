@@ -61,9 +61,11 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 		case "format":
 
 		case "rounded-corners":
-
+			contentType, img, err = service.RoundedCorners(img, actionParams[i])
+		case "circle":
+			contentType, img, err = service.Circle(img, actionParams[i])
 		case "blur":
-
+			contentType, img, err = service.Blur(img, actionParams[i])
 		case "sharpen":
 
 		case "bright":
