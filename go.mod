@@ -6,8 +6,11 @@ require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/fishtailstudio/imgo v0.0.3
 	github.com/gin-gonic/gin v1.8.1
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/json-iterator/go v1.1.12
 	github.com/sadlil/gologger v0.0.0-20180131031757-2507bf651df8
+	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69
+	gonum.org/v1/plot v0.8.1
 )
 
 require (
@@ -16,12 +19,13 @@ require (
 	github.com/bitly/go-hostpool v0.1.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/fatih/color v1.13.0 // indirect
+	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-latex/latex v0.0.0-20210823091927-c0d11ff05a81 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattbaird/elastigo v0.0.0-20170123220020-2fe47fd29e4b // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
@@ -34,9 +38,8 @@ require (
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
-	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd // indirect
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
-	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
+	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

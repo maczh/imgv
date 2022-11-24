@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sadlil/gologger"
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
@@ -76,6 +78,10 @@ func setupRouter() *gin.Engine {
 				err = jpeg.Encode(w, img, &jpeg.Options{Quality: 75})
 			case "image/gif":
 				err = gif.Encode(w, img, nil)
+			case "image/bmp":
+				err = bmp.Encode(w, img)
+			case "image/tiff":
+				err = tiff.Encode(w, img, &tiff.Options{Compression: tiff.Deflate, Predictor: true})
 			default:
 				w.Header().Set("Content-Type", "image/png")
 				err = png.Encode(w, img)
