@@ -6,7 +6,6 @@ import (
 	"github.com/sadlil/gologger"
 	"image"
 	"imgv/service"
-	"imgv/utils"
 	"net/url"
 )
 
@@ -24,7 +23,6 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 		logger.Error("url parse error: " + err.Error())
 		return "", nil, err
 	}
-	logger.Debug("u = " + utils.ToJSON(u))
 	imgProcessParams := c.Query("x-oss-process")
 	values := u.Query()
 	if imgProcessParams == "" {
