@@ -93,8 +93,6 @@ type markImage struct {
 }
 
 func calcWaterMarkLeftTop(pos Position, width, height, w, h int) (int, int) {
-	//blockWidth := int(math.Round(float64(width) / float64(3)))
-	//blockHeight := int(math.Round(float64(height) / float64(3)))
 	switch pos.Grid {
 	case "nw":
 		return pos.Dx, pos.Dy
@@ -121,11 +119,6 @@ func calcWaterMarkLeftTop(pos Position, width, height, w, h int) (int, int) {
 
 func WaterMark(img *imgo.Image, params map[string]string) (string, *imgo.Image, error) {
 	logger.Debug("watermark params: " + utils.ToJSON(params))
-	//txt,text := params["text"],""
-	//if txt != "" {
-	//	t, _ := base64.StdEncoding.DecodeString(txt)
-	//	text = string(t)
-	//}
 	text := params["text"]
 	font := params["type"]
 	if font == "" {
