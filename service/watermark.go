@@ -37,6 +37,7 @@ type markText struct {
 	Color    string //文字颜色RGB,例如：000000表示黑色，FFFFFF表示白色
 	Size     int    //字体大小 单位pt
 	Alpha    uint32 //透明度
+	Rotate   int    //旋转角度
 	Position
 }
 
@@ -60,14 +61,14 @@ func (t *markText) length() float64 {
 }
 
 func (t *markText) Width() int {
-	logger.Debug(fmt.Sprintf("文字个数: %d", t.length()))
-	w := int((t.length() * float64(t.Size)) / 0.75)
+	logger.Debug(fmt.Sprintf("文字个数: %.1f", t.length()))
+	w := int((t.length()*float64(t.Size))/0.7 + 0.5)
 	logger.Debug(fmt.Sprintf("文字宽度: %d px", w))
 	return w
 }
 
 func (t *markText) Height() int {
-	h := int(float64(t.Size) / 0.75)
+	h := int(float64(t.Size)/0.7 + 0.5)
 	logger.Debug(fmt.Sprintf("文字高度: %d px", h))
 	return h
 }
@@ -160,6 +161,11 @@ func WaterMark(img *imgo.Image, params map[string]string) (string, *imgo.Image, 
 			imgUrl = host + imgUrl
 		}
 	}
+	r := params["rotate"]
+	rotate := 0
+	if r != "" {
+		rotate, _ = strconv.Atoi(r)
+	}
 	logger.Debug("text: " + text)
 	logger.Debug("imgUrl: " + imgUrl)
 	if text != "" {
@@ -169,6 +175,7 @@ func WaterMark(img *imgo.Image, params map[string]string) (string, *imgo.Image, 
 			Color:    c,
 			Size:     size,
 			Alpha:    uint32(t),
+			Rotate:   rotate,
 			Position: Position{
 				Grid: g,
 				Dx:   x,
@@ -195,9 +202,22 @@ func WaterMark(img *imgo.Image, params map[string]string) (string, *imgo.Image, 
 
 func textWaterMark(img *imgo.Image, text markText) *imgo.Image {
 	logger.Debug(fmt.Sprintf("文字宽度: %d, 高度: %d", text.Width(), text.Height()))
-	x, y := calcWaterMarkLeftTop(text.Position, img.Width(), img.Height(), text.Width(), text.Height())
-	logger.Debug(fmt.Sprintf("文字水印左上角: x=%d, y=%d", x, y))
-	return img.Text(text.Text, x, y, text.FontFile(), text.TextColor(), float64(text.Size), 96)
+	if text.Rotate == 0 {
+		x, y := calcWaterMarkLeftTop(text.Position, img.Width(), img.Height(), text.Width(), text.Height())
+		logger.Debug(fmt.Sprintf("文字水印左上角: x=%d, y=%d", x, y))
+		return img.Text(text.Text, x, y, text.FontFile(), text.TextColor(), float64(text.Size), 96)
+	} else {
+		txtImg := imgo.Canvas(text.Width(), text.Height(), color.NRGBA{
+			R: 255,
+			G: 255,
+			B: 255,
+			A: 0,
+		})
+		txtImg = txtImg.Text(text.Text, 0, 0, text.FontFile(), text.TextColor(), float64(text.Size), 96).
+			Rotate(text.Rotate)
+		x, y := calcWaterMarkLeftTop(text.Position, img.Width(), img.Height(), txtImg.Width(), txtImg.Height())
+		return img.Insert(txtImg, x, y)
+	}
 }
 
 //图片水印
