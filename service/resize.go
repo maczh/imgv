@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fishtailstudio/imgo"
 	"github.com/sadlil/gologger"
+	"image/color"
 	"imgv/utils"
 	"math"
 	"strconv"
@@ -71,7 +72,22 @@ func Resize(img *imgo.Image, params map[string]string) (string, *imgo.Image, err
 		img = img.Crop((wr-w+1)/2, (hr-h+1)/2, w, h)
 		//logger.Debug(fmt.Sprintf("corp-after: w=%d, h=%d", img.Width(), img.Height()))
 	case "pad":
-
+		c := params["color"]
+		if c == "" {
+			c = "FFFFFF"
+		}
+		r, _ := strconv.ParseUint(c[:2], 16, 8)
+		g, _ := strconv.ParseUint(c[2:4], 16, 8)
+		b, _ := strconv.ParseUint(c[4:], 16, 8)
+		canvas := imgo.Canvas(w, h, color.NRGBA{
+			R: uint8(r),
+			G: uint8(g),
+			B: uint8(b),
+			A: 255,
+		})
+		wi, hi := lfit(width, height, w, h)
+		img = img.Resize(wi, hi)
+		return contentType, canvas.Insert(img, (w-wi)/2, (h-hi)/2), nil
 	case "fixed":
 		img = img.Resize(w, h)
 	}
