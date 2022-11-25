@@ -34,6 +34,7 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 	}
 	cacheImage, err := service.LoadFromCache(u.Host+u.Path, imgProcessParams)
 	if err == nil && cacheImage != nil {
+		logger.Debug("发现缓存，直接返回缓存图片")
 		return cacheImage.Mimetype(), cacheImage.ToImage(), nil
 	}
 	actions, actionParams, err := service.SplitImageProcessParameters(imgProcessParams)

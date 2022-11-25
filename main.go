@@ -76,7 +76,7 @@ func setupRouter() *gin.Engine {
 			case "image/png":
 				err = png.Encode(w, img)
 			case "image/jpeg":
-				err = jpeg.Encode(w, img, &jpeg.Options{Quality: 75})
+				err = jpeg.Encode(w, img, &jpeg.Options{Quality: 90})
 			case "image/gif":
 				err = gif.Encode(w, img, nil)
 			case "image/bmp":
