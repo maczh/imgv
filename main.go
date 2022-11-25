@@ -63,10 +63,11 @@ func setupRouter() *gin.Engine {
 	engine.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 Not Found")
 	})
-	engine.GET("/process", func(c *gin.Context) {
+	engine.GET("/image/process", func(c *gin.Context) {
 		contentType, img, err := controller.ImageProcess(c)
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
+			return
 		} else {
 			w := c.Writer
 			w.WriteHeader(http.StatusOK)

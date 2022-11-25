@@ -52,6 +52,9 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 	logger.Debug("图片源地址: " + imgUrl)
 	var contentType string
 	img := service.LoadImage(imgUrl)
+	if img.Error != nil {
+		return "", nil, fmt.Errorf("404 Not found")
+	}
 	for i, action := range actions {
 		switch action {
 		case "resize":
@@ -63,7 +66,8 @@ func ImageProcess(c *gin.Context) (string, image.Image, error) {
 		case "format":
 			contentType, img, err = service.Format(img, actionParams[i])
 		case "watermark":
-
+			actionParams[i]["host"] = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+			contentType, img, err = service.WaterMark(img, actionParams[i])
 		case "rounded-corners":
 			contentType, img, err = service.RoundedCorners(img, actionParams[i])
 		case "circle":

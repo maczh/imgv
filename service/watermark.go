@@ -1,18 +1,29 @@
 package service
 
 import (
-	"bytes"
+	"encoding/base64"
+	"fmt"
 	"github.com/fishtailstudio/imgo"
-	"github.com/golang/freetype"
-	"gonum.org/v1/plot/vg"
-	"gonum.org/v1/plot/vg/vgimg"
 	"image"
 	"image/color"
 	"image/draw"
-	"io/ioutil"
-	"log"
-	"math"
+	"imgv/utils"
+	"net/url"
+	"os"
+	"path"
+	"path/filepath"
+	"strconv"
+	"unicode"
 )
+
+var fonts = map[string]string{
+	"方正仿宋":   "/fonts/FZFSK.ttf",
+	"华文宋体":   "/fonts/Songti.ttc",
+	"方正书宋":   "/fonts/FZSSK.ttf",
+	"方正楷体":   "/fonts/FZKTK.ttf",
+	"文泉驿正黑":  "/fonts/文泉驿正黑.ttf",
+	"文泉驿微米黑": "/fonts/文泉驿微米黑.ttf",
+}
 
 type Position struct {
 	Grid string //九宫格位置
@@ -20,18 +31,61 @@ type Position struct {
 	Dy   int    //距离上(第上、中行)、下(下行)边距点数
 }
 
-type MarkText struct {
-	Text      string    //文字内容
-	FontFile  string    //字体路径
-	Color     [4]uint8  //文字颜色RGBA 例子: [0,0,0,122]
-	Size      vg.Length //字体大小 单位英寸
-	Linewidth vg.Length //行高
-	Angle     float64   //角度 0至1 的范围 即0到90度之间
-	Space     string    //空格间隔
+type markText struct {
+	Text     string //文字内容
+	FontName string //字体名称
+	Color    string //文字颜色RGB,例如：000000表示黑色，FFFFFF表示白色
+	Size     int    //字体大小 单位pt
+	Alpha    uint32 //透明度
 	Position
 }
 
-type MarkImage struct {
+func (t *markText) FontFile() string {
+	p, _ := filepath.Abs(path.Dir(os.Args[0]))
+	fontFile := p + fonts[t.FontName]
+	logger.Debug("字体文件名: " + fontFile)
+	return fontFile
+}
+
+func (t *markText) length() float64 {
+	var l float64 = 0.0
+	for _, r := range []rune(t.Text) {
+		if unicode.Is(unicode.Han, r) {
+			l++
+		} else {
+			l += 0.5
+		}
+	}
+	return l
+}
+
+func (t *markText) Width() int {
+	logger.Debug(fmt.Sprintf("文字个数: %d", t.length()))
+	w := int((t.length() * float64(t.Size)) / 0.75)
+	logger.Debug(fmt.Sprintf("文字宽度: %d px", w))
+	return w
+}
+
+func (t *markText) Height() int {
+	h := int(float64(t.Size) / 0.75)
+	logger.Debug(fmt.Sprintf("文字高度: %d px", h))
+	return h
+}
+
+func (t *markText) TextColor() color.Color {
+	r, _ := strconv.ParseUint(t.Color[:2], 16, 8)
+	g, _ := strconv.ParseUint(t.Color[2:4], 16, 8)
+	b, _ := strconv.ParseUint(t.Color[4:], 16, 8)
+	a := uint8(float64(t.Alpha) * 2.55)
+	return color.NRGBA{
+		R: uint8(r),
+		G: uint8(g),
+		B: uint8(b),
+		A: a,
+	}
+}
+
+type markImage struct {
 	Url   string  //水印图片地址
 	Scale float64 //缩放比例 1-100
 	Alpha float64 //透明度 0-100
@@ -39,25 +93,25 @@ type MarkImage struct {
 }
 
 func calcWaterMarkLeftTop(pos Position, width, height, w, h int) (int, int) {
-	blockWidth := int(math.Round(float64(width) / float64(3)))
-	blockHeight := int(math.Round(float64(height) / float64(3)))
+	//blockWidth := int(math.Round(float64(width) / float64(3)))
+	//blockHeight := int(math.Round(float64(height) / float64(3)))
 	switch pos.Grid {
 	case "nw":
 		return pos.Dx, pos.Dy
 	case "north":
-		return pos.Dx + blockWidth, pos.Dy
+		return pos.Dx + (width-w)/2, pos.Dy
 	case "ne":
 		return width - w - pos.Dx, pos.Dy
 	case "west":
-		return pos.Dx, pos.Dy + blockHeight
+		return pos.Dx, pos.Dy + (height-h)/2
 	case "center":
-		return pos.Dx + blockWidth, pos.Dy + blockHeight
+		return pos.Dx + (width-w)/2, pos.Dy + (height-h)/2
 	case "east":
-		return width - w - pos.Dx, pos.Dy + blockHeight
+		return width - w - pos.Dx, pos.Dy + (height-h)/2
 	case "sw":
 		return pos.Dx, height - h - pos.Dy
 	case "south":
-		return pos.Dx + blockWidth, height - h - pos.Dy
+		return pos.Dx + (width-w)/2, height - h - pos.Dy
 	case "se":
 		return width - w - pos.Dx, height - h - pos.Dy
 	default:
@@ -65,99 +119,106 @@ func calcWaterMarkLeftTop(pos Position, width, height, w, h int) (int, int) {
 	}
 }
 
+func WaterMark(img *imgo.Image, params map[string]string) (string, *imgo.Image, error) {
+	logger.Debug("watermark params: " + utils.ToJSON(params))
+	//txt,text := params["text"],""
+	//if txt != "" {
+	//	t, _ := base64.StdEncoding.DecodeString(txt)
+	//	text = string(t)
+	//}
+	text := params["text"]
+	font := params["type"]
+	if font == "" {
+		font = "文泉驿正黑"
+	}
+	s := params["size"]
+	if s == "" {
+		s = "40"
+	}
+	size, _ := strconv.Atoi(s)
+	size = int(float64(size) * 0.75) //将px转成pt
+	c := params["color"]
+	if c == "" {
+		c = "000000"
+	}
+	host := params["host"]
+	ts, t := params["t"], 100
+	if ts != "" {
+		t, _ = strconv.Atoi(ts)
+	}
+	xx, yy, x, y := params["x"], params["y"], 0, 0
+	x, _ = strconv.Atoi(xx)
+	y, _ = strconv.Atoi(yy)
+	g := params["g"]
+	if g == "" {
+		g = "se"
+	}
+	p := params["P"]
+	if p == "" {
+		p = "100"
+	}
+	scale, _ := strconv.Atoi(p)
+	u, imgUrl := params["image"], ""
+	if u != "" {
+		iuu, _ := url.QueryUnescape(u)
+		iu, _ := base64.StdEncoding.DecodeString(iuu)
+		imgUrl = string(iu)
+		if imgUrl[:1] == "/" {
+			imgUrl = host + imgUrl
+		}
+	}
+	logger.Debug("text: " + text)
+	logger.Debug("imgUrl: " + imgUrl)
+	if text != "" {
+		txtMark := markText{
+			Text:     text,
+			FontName: font,
+			Color:    c,
+			Size:     size,
+			Alpha:    uint32(t),
+			Position: Position{
+				Grid: g,
+				Dx:   x,
+				Dy:   y,
+			},
+		}
+		return img.Mimetype(), textWaterMark(img, txtMark), nil
+	}
+	if imgUrl != "" {
+		imageMark := markImage{
+			Url:   imgUrl,
+			Scale: float64(scale),
+			Alpha: float64(t),
+			Position: Position{
+				Grid: g,
+				Dx:   x,
+				Dy:   y,
+			},
+		}
+		return img.Mimetype(), imageWaterMark(img, imageMark), nil
+	}
+	return "", nil, fmt.Errorf("不是文字或图片类型水印")
+}
+
+func textWaterMark(img *imgo.Image, text markText) *imgo.Image {
+	logger.Debug(fmt.Sprintf("文字宽度: %d, 高度: %d", text.Width(), text.Height()))
+	x, y := calcWaterMarkLeftTop(text.Position, img.Width(), img.Height(), text.Width(), text.Height())
+	logger.Debug(fmt.Sprintf("文字水印左上角: x=%d, y=%d", x, y))
+	return img.Text(text.Text, x, y, text.FontFile(), text.TextColor(), float64(text.Size), 96)
+}
+
 //图片水印
-func imageWaterMark(img *imgo.Image, mark MarkImage) *imgo.Image {
+func imageWaterMark(img *imgo.Image, mark markImage) *imgo.Image {
 	markImg := imgo.LoadFromUrl(mark.Url)
 	if markImg.Error != nil {
+		logger.Error(markImg.Error.Error())
 		return img
 	}
 	markImg = markImg.Resize(int(float64(markImg.Width())*mark.Scale/float64(100)), int(float64(markImg.Height())*mark.Scale/float64(100)))
 	mi := adjustOpacity(toRGBA64(markImg.ToImage()), mark.Alpha/float64(100))
 	x, y := calcWaterMarkLeftTop(mark.Position, img.Width(), img.Height(), markImg.Width(), markImg.Height())
-	return img.Insert(imgo.LoadFromImage(mi), x, y)
-}
-
-// WaterMark用于在图像上添加水印
-func WaterMarkText(img image.Image, markText MarkText) (image.Image, error) {
-	// 图片的长度设置画布的长度
-	bounds := img.Bounds()
-	w := vg.Length(bounds.Max.X) * vg.Inch / vgimg.DefaultDPI
-	h := vg.Length(bounds.Max.Y) * vg.Inch / vgimg.DefaultDPI
-	// 通过高和宽计算对角线
-	diagonal := vg.Length(math.Sqrt(float64(w*w + h*h)))
-
-	// 创建一个画布，宽度和高度是对角线
-	c := vgimg.New(diagonal, diagonal)
-
-	// 在画布中心绘制图像
-	rect := vg.Rectangle{}
-	// 计算中心位置,宽为w,高为h
-	rect.Min.X = diagonal/2 - w/2
-	rect.Min.Y = diagonal/2 - h/2
-	rect.Max.X = diagonal/2 + w/2
-	rect.Max.Y = diagonal/2 + h/2
-	c.DrawImage(rect, img)
-
-	// 制作一个 fontstyle ，宽度为英寸,字体 Courier 标准的等宽度字体
-	// 读字体数据
-	fontBytes, err := ioutil.ReadFile(markText.FontFile)
-	if err != nil {
-		log.Println("读取字体数据出错")
-		log.Println(err)
-		return nil, err
-	}
-	font, err := freetype.ParseFont(fontBytes)
-	if err != nil {
-		log.Println("转换字体样式出错")
-		log.Println(err)
-		return nil, err
-	}
-	vg.AddFont("cn_font", font)
-	fontStyle, err := vg.MakeFont("cn_font", vg.Inch*markText.Size)
-	if err != nil {
-		return nil, err
-	}
-	// 重复编写水印字体
-	marktext := markText.Text
-	unitText := marktext
-
-	markTextWidth := fontStyle.Width(marktext)
-	for markTextWidth <= diagonal {
-		marktext += markText.Space + unitText
-		markTextWidth = fontStyle.Width(marktext)
-	}
-	// 设置水印字体的颜色
-	rgba := markText.Color
-	c.SetColor(color.RGBA{rgba[0], rgba[1], rgba[2], rgba[3]})
-	// 设置 0 到 π/2 之间的随机角度
-	c.Rotate(markText.Angle * math.Pi / 2)
-
-	// 设置每行水印的高度并添加水印
-	// 一个字体的高度
-	lineHeight := fontStyle.Extents().Height * markText.Linewidth
-	for offset := -2 * diagonal; offset < 2*diagonal; offset += lineHeight {
-		c.FillString(fontStyle, vg.Point{X: 0, Y: offset}, marktext)
-	}
-
-	// 画布写入新图片
-	// 使用buffer去转换
-	jc := vgimg.PngCanvas{Canvas: c}
-	buff := new(bytes.Buffer)
-	jc.WriteTo(buff)
-	img, _, err = image.Decode(buff)
-	if err != nil {
-		return nil, err
-	}
-
-	// 得到图像的中心点
-	ctp := int(diagonal * vgimg.DefaultDPI / vg.Inch / 2)
-
-	// 切出打水印的图像
-	size := bounds.Size()
-	bounds = image.Rect(ctp-size.X/2, ctp-size.Y/2, ctp+size.X/2, ctp+size.Y/2)
-	rv := image.NewRGBA(bounds)
-	draw.Draw(rv, bounds, img, bounds.Min, draw.Src)
-	return rv, nil
+	logger.Debug(fmt.Sprintf("水印左上角位置: x=%d,y=%d", x, y))
+	return img.Insert(imgo.LoadFromImage(RGBA64toRGBA(mi)), x, y)
 }
 
 //Image转换为image.RGBA64
@@ -199,4 +260,10 @@ func adjustOpacity(m *image.RGBA64, percentage float64) *image.RGBA64 {
 		}
 	}
 	return newRgba
+}
+
+func RGBA64toRGBA(img *image.RGBA64) *image.RGBA {
+	rgba := image.NewRGBA(img.Bounds())
+	draw.Draw(rgba, rgba.Bounds(), img, img.Bounds().Min, draw.Over)
+	return rgba
 }

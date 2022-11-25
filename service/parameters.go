@@ -12,7 +12,7 @@ func SplitImageProcessParameters(param string) ([]string, []map[string]string, e
 	}
 	actions := make([]string, 0)
 	actionParams := make([]map[string]string, 0)
-	acts := strings.Split(param, "/")
+	acts := strings.Split(param[6:], "/")
 	for _, act := range acts {
 		list := strings.Split(act, ",")
 		actions = append(actions, list[0])
