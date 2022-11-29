@@ -124,7 +124,7 @@ x-oss-process=image/<操作>,<指标名称>_<值>,...,<单指标值>
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/resize,m_mfit,w_100,h_200
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/resize,m_mfit,w_100,h_200
 ```
 
 
@@ -146,7 +146,7 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/corp,g_nw,x_30,y_50,w_100,h_200
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/corp,g_nw,x_30,y_50,w_100,h_200
 ```
 
 
@@ -174,10 +174,10 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 
 ```
 #文字水印
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/watermark,text_%E6%B5%8B%E8%AF%95%20test%20%E6%B0%B4%E5%8D%B0,type_%E6%96%B9%E6%AD%A3%E4%BB%BF%E5%AE%8B,t_70,x_20,y_30,color_00FFFF
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/watermark,text_%E6%B5%8B%E8%AF%95%20test%20%E6%B0%B4%E5%8D%B0,type_%E6%96%B9%E6%AD%A3%E4%BB%BF%E5%AE%8B,t_70,x_20,y_30,color_00FFFF
 
 #图片水印
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/watermark,image_aHR0cHM6Ly9pbWctaG9tZS5jc2RuaW1nLmNuL2ltYWdlcy8yMDIyMTAyNjA1MTAwOC5wbmc%3D,t_80,g_center
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/watermark,image_aHR0cHM6Ly9pbWctaG9tZS5jc2RuaW1nLmNuL2ltYWdlcy8yMDIyMTAyNjA1MTAwOC5wbmc%3D,t_80,g_center
 ```
 
 
@@ -193,7 +193,7 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/rotate,45
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/rotate,45
 ```
 
 
@@ -209,7 +209,7 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/bright,-30
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/bright,-30
 ```
 
 
@@ -225,7 +225,7 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/contrast,20
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/contrast,20
 ```
 
 
@@ -241,7 +241,7 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/sharpen,150
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/sharpen,150
 ```
 
 
@@ -258,7 +258,66 @@ https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process
 - 使用范例
 
 ```
-https://u3xs13xf.hk03.1112oss.com/image%2FWX20221009-200815@2x.png?x-oss-process=image/blur,r_10,s_20
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/blur,r_10,s_20
 
+```
+
+
+
+### 圆角矩形
+
+- 操作名: rounded-corners
+
+| 指标名 | 是否必选 | 描述                           | 取值范围 |
+| ------ | -------- | ------------------------------ | -------- |
+| r      | Y        | 将图片切出圆角，指定圆角的半径 | [1,4096] |
+
+- 使用范例
+
+```
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/rounded-corners,r_20
+```
+
+
+
+### 内切圆
+
+- 操作名: circle
+
+| 指标名 | 是否必选 | 描述             | 取值范围 |
+| ------ | -------- | ---------------- | -------- |
+| r      | Y        | 指定内切圆的半径 | [1,4096] |
+
+- 使用范例
+
+```
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/circle,r_100
+```
+
+
+
+### 格式转换
+
+- 操作名: format
+
+| 指标名  | 是否必选 | 描述                 | 取值范围             |
+| ------- | -------- | -------------------- | -------------------- |
+| [value] | Y        | 设置转换后的图片格式 | Jpg,png,bmp,gif,tiff |
+
+- 使用范例
+
+```
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/format,png
+```
+
+
+
+### 多种处理叠加
+
+- 图片处理允许多种处理进行叠加，在使用的时候，多种处理之间用/分隔，按从前到后顺序逐个处理
+- 使用范例
+
+```
+https://2fzbd4rd.hk03.1112oss.com/cat-01.jpg?x-oss-process=image/blur,r_10,s_20/circle,r_100/format,png
 ```
 
